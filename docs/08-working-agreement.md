@@ -9,7 +9,7 @@
 Read in this order. Everything traces back to evidence in `01`.
 
 1. **[README](../README.md)** — what the product does, in five steps
-2. **[00-project-brief](00-project-brief.md)** — why this exists
+2. **[00-project-brief](00-project-brief.md)** — origin and **live principles only**. Its product thesis is dead; the banner at the top says which sections are still valid
 3. **[05-product-plan](05-product-plan.md)** — the decided product, competitive position, **and the two untested assumptions**
 4. **[07-stack-and-architecture-decisions](07-stack-and-architecture-decisions.md)** — the stack and why, including rejected options
 5. **[06-implementation-plan](06-implementation-plan.md)** — build sequence, data model, response ladder (§4.5)

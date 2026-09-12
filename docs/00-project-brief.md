@@ -1,60 +1,54 @@
-# AI Optimization Layer (AOL) — Project Brief & Working Context
+# AOL — Origin Brief & Principles
 
-**Status:** canonical onboarding doc. Read fully before any planning or development work.
+> **⚠️ PARTLY SUPERSEDED. Do not read this as a description of the product.**
+>
+> This is the **origin document**. It records where the project started, the principles that still govern it, and the process we still follow. Its **product thesis was killed by evidence** in Round 4 of Stage 0 research (see [03 Thread 10](03-decision-debate-log.md)).
+>
+> | Section | Status |
+> | --- | --- |
+> | §1 Philosophy | ✅ **Live** — unchanged and non-negotiable |
+> | §1 Product scope ("ten engines", "AI Optimization Layer") | ❌ **Dead** — see [05-product-plan.md](05-product-plan.md) |
+> | §2 Market research | ❌ **Superseded** by [01-research-findings.md](01-research-findings.md), Rounds 1–5 |
+> | §3 Process plan | ✅ **Live** — still how we work |
+> | §4 Timeline | ❌ **Superseded** by [06 §5](06-implementation-plan.md) |
+> | §5 Status | ❌ **Superseded** by [08-working-agreement.md](08-working-agreement.md) |
+>
+> **What we are actually building:** a context-integrity layer for AI agents — snapshot what matters before compaction, diff what survived, repair or block, report. Read [05-product-plan.md](05-product-plan.md).
+>
+> Kept rather than deleted because [03-decision-debate-log.md](03-decision-debate-log.md) references it throughout — Threads 1, 2 and 10 are arguments *against* what is written here, and deleting it would leave that reasoning pointing at nothing.
+
 **Last updated:** 2026-09-13
 
 ---
 
-## 1. What We're Building
+## 1. Where This Started
 
-**AI Optimization Layer (AOL)** — an infrastructure layer that sits between AI applications and AI model providers (OpenAI, Claude, Gemini, DeepSeek, Mistral, Grok, Llama, etc.) and automatically reduces AI inference cost while preserving or improving output quality, latency, and developer experience.
+The project began as an **"AI Optimization Layer"** — infrastructure sitting between AI applications and model providers, automatically reducing inference cost while preserving quality.
 
-We are not building another AI model. We are building the layer applications route their requests through before those requests reach a model provider.
+**That thesis is dead.** Round 4 found token prices had fallen ~80% in 2026 and ~1,000× in three years, with five independent forces commoditising every cost lever we would have sold. Cost reduction is now a *feature that earns trust*, never the product. Full argument in [03 Thread 10](03-decision-debate-log.md); evidence in [01 R17](01-research-findings.md).
 
-**Positioning:** "Cloudflare for AI inference" — needs sharpening once a wedge is locked, since Cloudflare AI Gateway already occupies similar framing.
+The original scope described **ten independent engines** — Observability, Context Optimization, Prompt Optimization, Memory Optimization, Semantic Cache, Retrieval Optimization, Intelligent Model Router, Response Optimization, Quality Evaluation, Learning Engine — plus a five-phase roadmap ending in a platform and marketplace.
 
-### Core Philosophy (non-negotiable)
+**The realisation that started everything else:** that is ten products, not one. Building all ten before shipping anything is why "what is our main model" felt undefined. This became the standing scope constraint in [03 Thread 1](03-decision-debate-log.md) — **any proposal that re-expands scope has to answer to it.**
+
+### Core Philosophy — LIVE, non-negotiable
+
+These survived every revision and still govern the product:
 
 1. **Never reduce quality.** Cost reduction is always secondary to quality preservation.
 2. **Every optimization must be measurable.** No assumptions — benchmark everything.
-3. **Every optimization needs evidence** that it reduced cost/tokens/latency while preserving quality, accuracy, context, and user intent.
+3. **Every optimization needs evidence** that it preserved quality, accuracy, context and user intent.
 4. **Trust over savings.** A small saving that costs customer trust is worse than no saving.
 
-### Original Product Scope (v1.0 vision doc — too broad for v1)
-
-Ten independent "engines": Observability, Context Optimization, Prompt Optimization, Memory Optimization, Semantic Cache, Retrieval Optimization, Intelligent Model Router, Response Optimization, Quality Evaluation, Learning Engine — plus a 5-phase roadmap ending in "AI Infrastructure Platform" (marketplace, plugin ecosystem, global infra).
-
-**Key realization:** this is ten products, not one. Building all ten before shipping anything is why "what's our main model" felt undefined. v1 needs a single wedge; the rest becomes an explicit roadmap, not a v1 requirement.
+Principle 3 is why [01-research-findings.md](01-research-findings.md) exists and why every decision cites it. Principle 4 is why the gate is deterministic and customer-auditable rather than an LLM judge grading our own work.
 
 ---
 
-## 2. Market Research Findings (as of Aug 2026)
+## 2. Market Research — SUPERSEDED
 
-### Competitive landscape
+The original competitive scan (Portkey→Palo Alto, Helicone→Mintlify, LiteLLM, OpenRouter, Martian/Not Diamond, Cloudflare AI Gateway) was **Round 0**. It has been replaced in full by [01-research-findings.md](01-research-findings.md), which corrected several of its conclusions — notably that the routing lane was *weaker* than assumed, not stronger.
 
-| Player | Position | Implication for us |
-| --- | --- | --- |
-| **Portkey** | Acquired by Palo Alto Networks (May 2026), folded into Prisma AIRS | Owns the enterprise compliance/governance lane (SOC 2, GDPR, ISO 27001) |
-| **Helicone** | Acquired by Mintlify (Mar 2026); cloud in maintenance mode | Self-hosted Rust gateway still strong: ~8ms p50 observability + caching, fully OSS |
-| **LiteLLM** | Dominant OSS self-hosted routing (40K+ stars, hundreds of millions of Docker pulls) | Default choice for teams wanting full control, no external dependency |
-| **OpenRouter** | Largest catalog (400+ models) | Strong for prototyping; weakens once routing policy and per-customer cost attribution matter |
-| **Martian / Not Diamond** | "Cheapest model meeting quality/latency targets per request" | Directly overlaps our Model Router engine. Martian has Accenture distribution |
-| **Cloudflare AI Gateway** | Edge caching/rate-limiting/analytics, 350+ models, zero infra | Direct challenge to our own "Cloudflare for AI" framing |
-
-Enterprise compliance certifications (SOC 2, GDPR, ISO 27001) are table stakes for regulated-industry deals, not a differentiator.
-
-### Cost optimization landscape
-
-- Caching → batching → routing is a well-understood playbook, not a moat. Caching first (zero accuracy risk), batching second (~50% guaranteed discount via e.g. OpenAI Batch API), routing last (requires real benchmark work against your own prompt distribution).
-- Mature AI cost governance already delivers 30–60% per-inference cost reduction for enterprises moving from unmanaged to governed deployments (Deloitte State of AI 2026).
-- **Agentic workloads are the underserved gap.** Agentic workflows can require 5–30x more tokens per task than single-turn chatbot use (Gartner, Mar 2026). Controlling agent behavior — call frequency, context per call, parallel threads, repeat-request detection — is a fundamentally different observability/control problem from single-call FinOps. Most existing gateways were designed around single-turn API calls, not agent loops.
-- **Nobody leads with "quality guarantee" as the core product claim.** Competitors treat quality as a dashboard metric, not a gate that blocks unsafe optimizations. Strongest differentiation candidate.
-
-### Working hypothesis on differentiation
-
-**Agentic workload cost governance, with a hard quality-preservation gate.** Avoids head-to-head with LiteLLM/Portkey/Cloudflare on general-purpose gateway features, targets a growing underserved pain point, and leans into the one thing our philosophy uniquely emphasizes.
-
-**This is a hypothesis, not a decision.** It must survive Stage 1 with real evidence and explicit trade-off comparison against the alternatives (context optimization + observability; quality-guaranteed model routing).
+**Do not cite this section.** Cite `01`.
 
 ---
 
@@ -64,21 +58,24 @@ Everything is finalized on paper before product code, so that (a) nothing blocks
 
 | Stage | Output | Status |
 | --- | --- | --- |
-| **0 — Research** | Competitive landscape, market gaps, technical feasibility per engine, pricing precedents | In progress (§2) |
-| **1 — Fundamentals Decision Log** | One doc, one section per decision: options, evidence, decision, reasoning | Not started |
-| **2 — PRD** | Scoped v1 behavior + explicit non-goals (other engines deferred, not forgotten) | Not started |
-| **3 — Architecture Doc** | System diagram, request lifecycle, data flow, tech stack — derived strictly from PRD | Not started |
-| **4 — ADRs** | One per consequential, hard-to-reverse technical choice, traceable to a Stage 1 decision | Not started |
-| **5 — GitHub Issue Breakdown** | Epics → architecture components, tasks under each; via GitHub issues once ADRs frozen | Not started |
-| **6 — Development** | Build against frozen docs using Claude Code | Not started |
+| **0 — Research** | Competitive landscape, market gaps, technical feasibility, pricing precedents | ✅ Complete — [01](01-research-findings.md), Rounds 1–5 |
+| **1 — Fundamentals Decision Log** | One doc, one section per decision: options, evidence, decision, reasoning | ✅ Complete — [02](02-fundamentals-decision-log.md) + [03](03-decision-debate-log.md) |
+| **2 — PRD** | Scoped v1 behaviour + explicit non-goals | ✅ Folded into [05](05-product-plan.md) |
+| **3 — Architecture Doc** | System diagram, data flow, tech stack | ✅ Complete — [07](07-stack-and-architecture-decisions.md) |
+| **4 — ADRs** | One per consequential, hard-to-reverse choice | ✅ Folded into [07](07-stack-and-architecture-decisions.md) |
+| **5 — GitHub Issue Breakdown** | Epics → components, tasks under each | ✅ Complete — issues M1–M8 |
+| **6 — Development** | Build against frozen docs | ⏳ **Current stage** |
 
-**Stage 1 decisions to make:** v1 wedge · ideal customer profile · integration model · quality-evaluation methodology · pricing/value-capture model · build-vs-integrate list · which enterprise-readiness concerns are day-one vs. later.
+**Stage 1 decisions (all made):** v1 wedge · ideal customer profile · integration model · quality-evaluation methodology · pricing/value-capture · build-vs-integrate · enterprise-readiness sequencing. See [02](02-fundamentals-decision-log.md).
 
 **Why this order matters:** each stage is a hard input to the next. Architecture written before fundamentals are locked gets rewritten. GitHub issues written before ADRs exist get rewritten. Doing it in order once is cheaper than doing it out of order twice.
 
 ---
 
-## 4. Rough Timeline Expectations
+## 4. Rough Timeline Expectations — SUPERSEDED
+
+> Estimates below were scoped to the original ten-engine v1 and do not apply. Current estimates: [06 §5](06-implementation-plan.md) — roughly 4 weeks to a shippable tool with enforcement.
+
 
 - **Stages 0–1** (research + fundamentals): ~1–2 weeks
 - **Stages 2–4** (PRD, architecture, ADRs): ~1–2 weeks
@@ -91,7 +88,10 @@ Everything is finalized on paper before product code, so that (a) nothing blocks
 
 ---
 
-## 5. Status as of This Document
+## 5. Status — SUPERSEDED
+
+> Current state lives in [08-working-agreement.md](08-working-agreement.md) and the GitHub issues. Historical record below.
+
 
 - Original v1.0 vision doc exists — north-star reference, **not** the v1 spec.
 - **Stage 0 Round 1 complete** → [01-research-findings.md](01-research-findings.md). It forced a thesis reframe: the cost levers are commoditizing (provider prompt caching is automatic and free; compaction is built into every agent framework), while **verification that an optimization didn't break anything is unowned**. §2 above is superseded where the two disagree.

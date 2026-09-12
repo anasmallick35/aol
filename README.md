@@ -26,7 +26,7 @@ Read in order. Everything traces back to evidence in `01`.
 
 | Doc | What it is |
 | --- | --- |
-| [00-project-brief.md](docs/00-project-brief.md) | Onboarding context. Read first. |
+| [08-working-agreement.md](docs/08-working-agreement.md) | **Read first.** How we work, and how to resume with no memory of the conversation |
 | [01-research-findings.md](docs/01-research-findings.md) | Stage 0 research, Rounds 1–5, every claim sourced |
 | [02-fundamentals-decision-log.md](docs/02-fundamentals-decision-log.md) | D0–D7: what we decided |
 | [03-decision-debate-log.md](docs/03-decision-debate-log.md) | Threads 1–11: **how** we decided, including what we rejected |
@@ -34,7 +34,7 @@ Read in order. Everything traces back to evidence in `01`.
 | [05-product-plan.md](docs/05-product-plan.md) | The product, the wedge, competitive position, open assumptions |
 | [06-implementation-plan.md](docs/06-implementation-plan.md) | Build sequence, repo shape, data model, milestones |
 | [07-stack-and-architecture-decisions.md](docs/07-stack-and-architecture-decisions.md) | Every stack/architecture decision with rejected alternatives |
-| [08-working-agreement.md](docs/08-working-agreement.md) | How we work: git/PR workflow, doc conventions, **how to resume with no memory of the conversation** |
+| [00-project-brief.md](docs/00-project-brief.md) | Origin brief and **live principles**. Partly superseded — its product thesis was killed by evidence. Read for philosophy and process, not for what we're building |
 
 ## Working agreement
 
