@@ -34,12 +34,16 @@ Read in order. Everything traces back to evidence in `01`.
 | [05-product-plan.md](docs/05-product-plan.md) | The product, the wedge, competitive position, open assumptions |
 | [06-implementation-plan.md](docs/06-implementation-plan.md) | Build sequence, repo shape, data model, milestones |
 | [07-stack-and-architecture-decisions.md](docs/07-stack-and-architecture-decisions.md) | Every stack/architecture decision with rejected alternatives |
+| [08-working-agreement.md](docs/08-working-agreement.md) | How we work: git/PR workflow, doc conventions, **how to resume with no memory of the conversation** |
 
 ## Working agreement
+
+See [08-working-agreement.md](docs/08-working-agreement.md). In short:
 
 - Every decision cites evidence from `01`, or says explicitly that it is being made without evidence.
 - Decisions go in `02`. The reasoning trail — including what we argued about and rejected — goes in `03`.
 - Anything re-expanding scope goes through `03` first.
+- One PR per issue; Anas reviews and merges; `main` is never pushed to directly.
 
 ## Two untested assumptions
 
