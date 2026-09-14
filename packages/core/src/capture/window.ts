@@ -41,7 +41,19 @@ export interface WindowOptions {
   controlSize?: number
 }
 
-export const DEFAULT_CONTROL_SIZE = 40
+/**
+ * Control window size, in messages.
+ *
+ * Raised from 40 after running against real events: a 40-message window
+ * contained no user constraints at all, so the control column read "no
+ * comparable items" and the constraint numbers had nothing to be judged
+ * against. 200 is still small beside a 2,600-message dropped set, but large
+ * enough to usually contain some.
+ *
+ * When the control still yields too few items to compare, the report says so
+ * rather than comparing anyway.
+ */
+export const DEFAULT_CONTROL_SIZE = 200
 
 /**
  * Slice a transcript around a compaction boundary.
