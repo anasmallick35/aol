@@ -33,7 +33,9 @@ So: **stop building integrations, start building the one interceptor the standar
 | **OTel collector processor** | Telemetry is one-way. Spans arrive after the fact, so it can observe but never block. Good for reporting, useless as a gate. **Adopted for output, rejected for control** |
 | **eBPF / network interception** | Sees bytes, not semantics. Enormous complexity for no access to agent-loop meaning |
 
-**Reverses if:** Agent Hooks adoption stalls. It is **version 0.1** and AGT is **Public Preview** [R24-c] — betting everything on a young spec is real exposure. Mitigation is A2.
+**Reverses if:** Agent Hooks adoption stalls. The npm package is **`0.1.0-alpha.2`** and ships a **linux-x64-only** native core (verified in M6), so this is even earlier than the spec write-up implied. Mitigation is A2, strengthened: our adapters transcribe the contract from the published `.d.ts` and import nothing from the SDK at runtime.
+
+**One contract detail worth recording, because it differs from the write-up:** the spec has **three** decisions, not five — `allow`, `deny`, `transform`. `warn` is an allow carrying `warnings[]`; `escalate` is a deny carrying an `approval` block. Our internal five-valued verdict collapses into this deliberately, in one mapping function per adapter, tested in both languages.
 
 ### A2 — Adapter-agnostic core, multiple adapters
 
@@ -155,7 +157,7 @@ Per [05 §5, D6]: LiteLLM for provider abstraction [R3-a] · TokenPilot-class ca
 
 | Risk | Severity | Mitigation |
 | --- | --- | --- |
-| **AGENT-HOOKS is 0.1; AGT is Public Preview** [R24-c] | High | A2 adapter-agnostic core; Claude Code adapter ships independently |
+| **AGENT-HOOKS is earlier than 0.1 suggests** — the npm package is **`0.1.0-alpha.2`**, and it ships a napi-rs Rust core with **only `agent-hooks.linux-x64-gnu.node`**: there is no darwin-arm64 build, so it cannot even load on our machines (verified M6) | **High — raised** | A2 adapter-agnostic core, plus: our adapters declare the contract **locally** and take **no runtime dependency** on the SDK. They satisfy `Interceptor` structurally, so they install and run wherever the host does |
 | **Microsoft extends ACS into context integrity** | High | It is the one gap they left [R24-b]. Speed, plus depth they are unlikely to copy: control windows and conformal bounds |
 | **OWASP Agent Memory Guard extends from poisoning into loss** | Medium-high | Same answer. Also different framing: they are security, we are correctness |
 | **TypeScript core limits Python-ecosystem credibility** | Medium | First-class `pip` shim day one (S3) |
