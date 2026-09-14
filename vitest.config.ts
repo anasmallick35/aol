@@ -7,6 +7,7 @@ export default defineConfig({
       // Test against source, not the built bundle, so a stale dist can never
       // make a red suite look green.
       '@aol/core': fileURLToPath(new URL('./packages/core/src/index.ts', import.meta.url)),
+      '@aol/hooks': fileURLToPath(new URL('./packages/adapter-agent-hooks/src/index.ts', import.meta.url)),
     },
   },
   test: {

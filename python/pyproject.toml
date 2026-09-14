@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "aol-hooks"
+version = "0.0.0"
+description = "Context integrity for AI agents — an AGENT-HOOKS-0.1 interceptor"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+# No dependencies, deliberately. This is imported into other people's
+# agents; every dependency we add is one they did not choose.
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["aol_hooks"]
