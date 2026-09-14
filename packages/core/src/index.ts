@@ -26,5 +26,7 @@ export {
   type WindowOptions,
 } from './capture/window.js'
 export * from './extract/index.js'
+export * from './detect/index.js'
+export { renderReport, type RenderOptions } from './report/render.js'
 export { redactString, redactForStorage, REDACTED, MAX_STORED_CHARS } from './redact.js'
 export { logger } from './log.js'

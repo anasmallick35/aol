@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 import { Command } from 'commander'
-import { AolServer, openDb, Repo, aolHome, dbPath, socketPath, decide, PROTOCOL_VERSION } from '@aol/core'
+import {
+  AolServer, openDb, Repo, aolHome, dbPath, socketPath, decide, PROTOCOL_VERSION,
+  findCompactBoundaries, sliceWindows, streamTranscript, isConversational, detect, renderReport,
+  type TranscriptEntry,
+} from '@aol/core'
 import { hookCommand } from './hooks.js'
 import { initHooks, HOOK_EVENTS } from './init.js'
 
@@ -66,32 +70,62 @@ program
 
 program
   .command('report')
-  .description('Summarise recorded activity')
-  .option('--session <id>', 'restrict to one session')
-  .action((opts: { session?: string }) => {
+  .description('Analyse compaction events and report what survived')
+  .option('--session <id>', 'restrict to one recorded session')
+  .option('--transcript <path>', 'analyse a transcript file directly')
+  .option('--verbose', 'list the individual items behind each number')
+  .action(async (opts: { session?: string; transcript?: string; verbose?: boolean }) => {
+    if (opts.transcript) {
+      await reportTranscript(opts.transcript, opts.verbose ?? false)
+      return
+    }
+
     const db = openDb()
     const repo = new Repo(db)
-    if (opts.session) {
-      const n = repo.countInterceptions(opts.session)
-      const events = repo.listMutationEvents(opts.session)
-      process.stdout.write(`session ${opts.session}: ${n} interceptions, ${events.length} mutation events\n`)
-    } else {
-      const rows = db
-        .prepare(
-          `SELECT s.id, s.adapter, COUNT(i.id) AS n
-           FROM sessions s LEFT JOIN interceptions i ON i.session_id = s.id
-           GROUP BY s.id ORDER BY s.last_seen DESC LIMIT 20`,
-        )
-        .all() as Array<{ id: string; adapter: string; n: number }>
-      if (rows.length === 0) {
-        process.stdout.write('no sessions recorded yet\n')
-      } else {
-        for (const r of rows) process.stdout.write(`${r.id}  ${r.adapter}  ${r.n} interceptions\n`)
-      }
+    const rows = db
+      .prepare(
+        `SELECT s.id, s.adapter, s.cwd, COUNT(i.id) AS n
+         FROM sessions s LEFT JOIN interceptions i ON i.session_id = s.id
+         ${opts.session ? 'WHERE s.id = ?' : ''}
+         GROUP BY s.id ORDER BY s.last_seen DESC LIMIT 20`,
+      )
+      .all(...(opts.session ? [opts.session] : [])) as Array<{ id: string; adapter: string; cwd: string | null; n: number }>
+
+    if (rows.length === 0) {
+      process.stdout.write('No sessions recorded yet. Run `aol init`, start `aol daemon`, and use Claude Code.\n')
+      db.close()
+      return
     }
+
+    for (const r of rows) {
+      const events = repo.listMutationEvents(r.id)
+      process.stdout.write(`\n${r.id}  ${r.adapter}  ${r.n} interceptions  ${events.length} compaction(s)\n`)
+      if (r.cwd) process.stdout.write(`  ${r.cwd}\n`)
+    }
+    process.stdout.write('\nAnalyse a specific transcript with: aol report --transcript <path> --verbose\n')
     db.close()
-    // Detection rates land in M4, once detectors and the control window exist.
   })
+
+async function reportTranscript(path: string, verbose: boolean): Promise<void> {
+  const boundaries = await findCompactBoundaries(path)
+  if (boundaries.length === 0) {
+    process.stdout.write(`No compaction found in ${path}\n`)
+    return
+  }
+
+  for (const b of boundaries) {
+    const windows = await sliceWindows(path, b)
+    const after: TranscriptEntry[] = []
+    for await (const e of streamTranscript(path)) {
+      if (e.lineIndex > b.lineIndex && isConversational(e)) after.push(e)
+    }
+    const pre = b.preTokens?.toLocaleString() ?? '?'
+    const post = b.postTokens?.toLocaleString() ?? '?'
+    process.stdout.write(`\n── compaction at line ${b.lineIndex}  (${b.trigger})  ${pre} → ${post} tokens\n`)
+    process.stdout.write(`   ${windows.dropped.length} messages dropped, ${windows.preserved.length} preserved\n\n`)
+    process.stdout.write(renderReport(detect(windows, after), { verbose }) + '\n')
+  }
+}
 
 program
   .command('hook')
