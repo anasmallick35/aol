@@ -54,11 +54,19 @@ const USE_X_NOT_Y = /^use\b.{0,60}\b(not|instead of|rather than|only)\b/i
 export const MIN_CLAUSE_LENGTH = 8
 export const MAX_CLAUSE_LENGTH = 250
 
-/** Split a turn into clauses. A turn is not a constraint; a clause is. */
+/**
+ * Split a turn into clauses. A turn is not a constraint; a clause is.
+ *
+ * Sentence punctuation only counts as a boundary when followed by whitespace or
+ * end of string. Splitting on every '.' tore `never edit src/prod.ts` into
+ * "never edit src/prod" and "ts" — losing the path, and with it any chance of
+ * compiling the constraint into a predicate. Version numbers and decimals had
+ * the same problem.
+ */
 export function splitClauses(text: string): string[] {
   return text
     .replace(URL, ' ')
-    .split(/[.!?\n;]+|,\s+/)
+    .split(/[.!?;]+(?=\s|$)|[\n]+|,\s+/)
     .map((c) => c.replace(LEAD_MARKUP, '').trim())
     .filter(Boolean)
 }

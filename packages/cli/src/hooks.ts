@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import {
   PROTOCOL_VERSION,
   decide,
+  isEnforcingPoint,
   findCompactBoundaries,
   sliceWindows,
   logger,
@@ -175,11 +176,29 @@ export async function runHook(rawInput: string): Promise<number> {
 
   const verdict = await decide(interception)
 
-  // M2 observes only. Enforcement — translating a deny into exit 2 — is M7,
-  // and shipping it before the detectors exist would block on nothing.
-  if (verdict.decision === 'deny' && verdict.reason !== 'unreachable') {
-    logger.info('verdict would block (not enforced until M7)', { reason: verdict.reason, point })
+  // Surface warnings on stderr so the user sees them without the run stopping.
+  if (verdict.decision === 'warn' && verdict.message) {
+    process.stderr.write(`\n[aol] ${verdict.message}\n`)
   }
+
+  if (verdict.decision === 'deny') {
+    // A deny we synthesised because the daemon was unreachable must NOT block.
+    // Fail-closed is the right protocol default, but applying it to a user who
+    // simply has not started the daemon would make the tool hostile.
+    if (verdict.reason === 'unreachable' || verdict.reason === 'timeout') {
+      logger.warn('daemon unavailable; not blocking', { reason: verdict.reason, point })
+      return 0
+    }
+    // Exit 2 is how a Claude Code hook blocks. Only enforcing points can
+    // actually prevent anything; denying elsewhere would stop the session for
+    // something that has already happened.
+    if (isEnforcingPoint(point)) {
+      process.stderr.write(`\n[aol] BLOCKED — ${verdict.message ?? verdict.reason ?? 'constraint violation'}\n`)
+      return 2
+    }
+    logger.info('deny at a non-enforcing point; not blocking', { point, reason: verdict.reason })
+  }
+
   return 0
 }
 
