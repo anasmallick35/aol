@@ -2,10 +2,14 @@ import { extractAll, type ExtractOptions } from '../extract/index.js'
 import { detectSurvival, type SurvivalSummary } from './survival.js'
 import { detectRedundancy, type RedundancySummary } from './redundancy.js'
 import { windowText, survivingText, type MutationWindows } from '../capture/window.js'
+import { compileConstraints, type CompileResult } from './predicate.js'
+import { detectViolations, toolCallsIn, type ViolationSummary } from './violation.js'
 import type { TranscriptEntry } from '../capture/transcript.js'
 
 export * from './survival.js'
 export * from './redundancy.js'
+export * from './predicate.js'
+export * from './violation.js'
 
 export interface DetectionReport {
   /** D1–D3 over the mutation itself. */
@@ -14,6 +18,13 @@ export interface DetectionReport {
   commitments: SurvivalSummary
   /** D4 over the mutation itself. */
   redundancy: RedundancySummary
+  /**
+   * D5 — the headline metric: actions after the cut that broke rules stated
+   * before it. Paired with `compiled`, because a violation count means nothing
+   * without knowing what share of the rules were mechanically checkable.
+   */
+  violations: ViolationSummary
+  compiled: CompileResult
   /**
    * The same measurements over a window where NO mutation occurred.
    *
@@ -26,6 +37,7 @@ export interface DetectionReport {
     artifacts: SurvivalSummary
     commitments: SurvivalSummary
     redundancy: RedundancySummary
+    violations: ViolationSummary
   }
   groundTruthAvailable: boolean
 }
@@ -56,16 +68,25 @@ export function detect(
   const controlText = windowText(second)
   const controlByKind = (kind: string) => controlItems.filter((i) => i.kind === kind)
 
+  const compiled = compileConstraints(byKind('constraint'))
+  const controlCompiled = compileConstraints(controlByKind('constraint'))
+
   return {
     constraints: detectSurvival(byKind('constraint'), surviving),
     artifacts: detectSurvival(byKind('artifact'), surviving),
     commitments: detectSurvival(byKind('commitment'), surviving),
     redundancy: detectRedundancy(windows.dropped, after, opts),
+    violations: detectViolations(compiled.predicates, toolCallsIn(after)),
+    compiled,
     control: {
       constraints: detectSurvival(controlByKind('constraint'), controlText),
       artifacts: detectSurvival(controlByKind('artifact'), controlText),
       commitments: detectSurvival(controlByKind('commitment'), controlText),
       redundancy: detectRedundancy(first, second, opts),
+      // Same question of a window with no mutation: do rules stated in the
+      // first half get broken in the second? Without this, any violation count
+      // could just be how the agent always behaves.
+      violations: detectViolations(controlCompiled.predicates, toolCallsIn(second)),
     },
     groundTruthAvailable: windows.groundTruthAvailable,
   }

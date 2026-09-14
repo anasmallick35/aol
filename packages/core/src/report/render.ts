@@ -75,6 +75,24 @@ export function renderReport(r: DetectionReport, opts: RenderOptions = {}): stri
     `  redundant work  ${r.redundancy.redundant.length} of ${r.redundancy.priorTargets} prior targets re-read after the cut` +
       `   (control: ${r.control.redundancy.redundant.length} of ${r.control.redundancy.priorTargets})`,
   )
+  out.push('')
+
+  // D5. Coverage is printed alongside the count and never separately: a
+  // violation total means nothing without knowing what share of the rules
+  // could be mechanically checked at all.
+  const v = r.violations
+  const coveragePct = pct(r.compiled.coverage)
+  out.push(
+    `  RULE VIOLATIONS  ${v.violations.length}` +
+      `   (control: ${r.control.violations.violations.length})`,
+  )
+  out.push(
+    `    checked ${v.predicatesChecked} of ${r.compiled.predicates.length + r.compiled.uncompilable.length} constraints` +
+      ` (${coveragePct} mechanically checkable) against ${v.callsChecked} tool calls`,
+  )
+  if (r.compiled.uncompilable.length) {
+    out.push(`    ${r.compiled.uncompilable.length} constraint(s) could not be compiled into a check — not counted either way`)
+  }
 
   if (opts.verbose) {
     const lost = r.constraints.verdicts.filter((v) => v.survival === 'lost')
@@ -92,6 +110,20 @@ export function renderReport(r: DetectionReport, opts: RenderOptions = {}): stri
       for (const v of uncertain.slice(0, 10)) {
         out.push(`    ? ${v.item.value.slice(0, 100)}  (overlap ${pct(v.overlap)})`)
       }
+    }
+    if (r.violations.violations.length) {
+      out.push('')
+      out.push('  violations:')
+      for (const x of r.violations.violations.slice(0, 15)) {
+        out.push(`    ⚠ ${x.toolName} — ${x.predicate.explanation}`)
+        out.push(`      rule:    "${x.predicate.source.value.slice(0, 90)}"`)
+        out.push(`      matched: ${x.field}=${x.matched.slice(0, 80).replace(/\n/g, ' ')}`)
+      }
+    }
+    if (r.compiled.uncompilable.length) {
+      out.push('')
+      out.push('  constraints with no mechanical check (neither enforced nor counted):')
+      for (const i of r.compiled.uncompilable.slice(0, 10)) out.push(`    – ${i.value.slice(0, 100)}`)
     }
     if (r.redundancy.redundant.length) {
       out.push('')
