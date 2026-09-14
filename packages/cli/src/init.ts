@@ -24,15 +24,22 @@ import { join, dirname } from 'node:path'
  */
 const AOL_MARKER = /aol.*\bhook\b/i
 
-/** Events we register for. Kept narrow: unmapped events cost a process spawn for nothing. */
-export const HOOK_EVENTS = [
-  'PreCompact',
-  'PostCompact',
-  'SessionStart',
-  'SessionEnd',
-  'PreToolUse',
-  'PostToolUse',
-] as const
+/**
+ * Events we register for.
+ *
+ * Compaction and session events only, deliberately. Claude Code invokes a hook
+ * as a fresh process, measured at ~157ms per call (≈102ms node startup plus
+ * ≈55ms npx resolution). PreToolUse and PostToolUse fire on EVERY tool call, so
+ * registering them would add roughly 300ms per tool call — minutes across a
+ * long session — for data nothing reads until M4 and M5.
+ *
+ * The events below fire once per compaction or per session, so their cost is
+ * irrelevant. Tool hooks get added in M4/M5, when they buy something.
+ *
+ * The dispatcher in hooks.ts still handles tool events, so a user who registers
+ * them by hand works correctly. This list only governs what `aol init` writes.
+ */
+export const HOOK_EVENTS = ['PreCompact', 'PostCompact', 'SessionStart', 'SessionEnd'] as const
 
 interface HookCommand { type: string; command: string; timeout?: number }
 interface HookMatcher { matcher?: string; hooks: HookCommand[] }
