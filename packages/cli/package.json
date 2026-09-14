@@ -1,0 +1,14 @@
+{
+  "name": "@aol/cli",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "bin": { "aol": "./dist/cli.js" },
+  "scripts": {
+    "build": "tsup src/cli.ts --format esm --clean --tsconfig tsconfig.build.json"
+  },
+  "dependencies": {
+    "@aol/core": "*",
+    "commander": "^12.1.0"
+  }
+}
