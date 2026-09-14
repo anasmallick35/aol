@@ -1,6 +1,7 @@
 import type { DB } from './db.js'
 import type { Interception } from '../events.js'
 import type { Verdict } from '../verdict.js'
+import { redactForStorage } from '../redact.js'
 
 export class Repo {
   constructor(private readonly db: DB) {}
@@ -54,6 +55,42 @@ export class Repo {
         m?.preTokens ?? null,
         m?.postTokens ?? null,
         Date.now(),
+      )
+    return Number(info.lastInsertRowid)
+  }
+
+  /**
+   * Record a violation.
+   *
+   * Tool input is redacted on the way in, never on the way out. Doing it here
+   * rather than at the call site means a later milestone cannot forget: there
+   * is no path that writes raw input to this table.
+   */
+  recordViolation(args: {
+    eventId?: number
+    constraintItemId?: number
+    sessionId: string
+    interceptionPoint: string
+    toolName?: string
+    toolInput?: unknown
+    verdict: string
+    ts: number
+  }): number {
+    const info = this.db
+      .prepare(
+        `INSERT INTO violations (event_id, constraint_item_id, session_id, interception_point,
+                                 tool_name, tool_input, verdict, ts)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        args.eventId ?? null,
+        args.constraintItemId ?? null,
+        args.sessionId,
+        args.interceptionPoint,
+        args.toolName ?? null,
+        redactForStorage(args.toolInput),
+        args.verdict,
+        args.ts,
       )
     return Number(info.lastInsertRowid)
   }

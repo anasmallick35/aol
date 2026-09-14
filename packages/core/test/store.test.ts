@@ -86,3 +86,32 @@ describe('store', () => {
     ).toThrow()
   })
 })
+
+describe('violation recording', () => {
+  it('redacts tool input on the way into the database', () => {
+    // Guarding the storage path rather than the call site: there is no way to
+    // write raw tool input to this table, so a later milestone cannot forget.
+    const repo = new Repo(db)
+    repo.touchSession(event())
+    repo.recordViolation({
+      sessionId: 's1',
+      interceptionPoint: 'pre_tool',
+      toolName: 'Bash',
+      toolInput: { command: "curl -H 'Authorization: Bearer sk-live-9a8b7c6d5e4f' https://api.stripe.com" },
+      verdict: 'deny',
+      ts: 1_700_000_000_000,
+    })
+    const row = db.prepare('SELECT * FROM violations').get() as { tool_input: string; tool_name: string }
+    expect(row.tool_input).not.toContain('sk-live-9a8b7c6d5e4f')
+    expect(row.tool_input).toContain('api.stripe.com')
+    expect(row.tool_name).toBe('Bash')
+  })
+
+  it('stores NULL when there is no tool input', () => {
+    const repo = new Repo(db)
+    repo.touchSession(event())
+    repo.recordViolation({ sessionId: 's1', interceptionPoint: 'pre_model', verdict: 'warn', ts: 1 })
+    const row = db.prepare('SELECT tool_input FROM violations').get() as { tool_input: string | null }
+    expect(row.tool_input).toBeNull()
+  })
+})
