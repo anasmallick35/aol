@@ -3,7 +3,8 @@ import { Command } from 'commander'
 import {
   AolServer, openDb, Repo, aolHome, dbPath, socketPath, decide, PROTOCOL_VERSION,
   findCompactBoundaries, sliceWindows, streamTranscript, isConversational, detect, renderReport,
-  type TranscriptEntry,
+  createGate, capabilitiesFor,
+  type TranscriptEntry, type GateMode,
 } from '@aol/core'
 import { hookCommand } from './hooks.js'
 import { initHooks, HOOK_EVENTS } from './init.js'
@@ -15,14 +16,20 @@ program
   .command('daemon')
   .description('Run the decision daemon')
   .option('--socket <path>', 'socket path')
-  .option('--failure-mode <mode>', "'observe' (default) or 'enforce'", 'observe')
-  .action(async (opts: { socket?: string; failureMode: 'observe' | 'enforce' }) => {
+  .option('--mode <mode>', "'observe', 'warn' (default) or 'block'", 'warn')
+  .option('--failure-mode <mode>', "what OUR bugs do: 'observe' (default) or 'enforce'", 'observe')
+  .option('--repair-budget <tokens>', 'tokens available for re-injecting dropped context', '2000')
+  .action(async (opts: { socket?: string; mode: GateMode; failureMode: 'observe' | 'enforce'; repairBudget: string }) => {
+    const gate = createGate({ mode: opts.mode, maxTokens: Number(opts.repairBudget) })
     const server = new AolServer({
       ...(opts.socket ? { socketPath: opts.socket } : {}),
       failureMode: opts.failureMode,
+      decide: (event, ctx) => gate.decide(event, ctx),
     })
     const addr = await server.listen()
-    process.stdout.write(`aol daemon listening on ${addr} (failure-mode: ${opts.failureMode})\n`)
+    process.stdout.write(`aol daemon listening on ${addr}\n`)
+    process.stdout.write(`  mode: ${opts.mode}   (observe = silent, warn = surface findings, block = deny violating actions)\n`)
+    process.stdout.write(`  repair budget: ${opts.repairBudget} tokens\n`)
     const shutdown = async () => {
       await server.close()
       process.exit(0)
@@ -42,6 +49,10 @@ program
     lines.push(`database         : ${dbPath()}`)
     lines.push(`socket           : ${socketPath()}`)
     lines.push(`hook events      : ${HOOK_EVENTS.join(', ')}`)
+    const caps = capabilitiesFor('claude-code')
+    lines.push(
+      `claude-code caps : prevent=${caps.prevent} detect=${caps.detect} repair=${caps.repair} block=${caps.block} report=${caps.report}`,
+    )
     try {
       const db = openDb()
       const n = db.prepare('SELECT COUNT(*) AS n FROM _migrations').get() as { n: number }
