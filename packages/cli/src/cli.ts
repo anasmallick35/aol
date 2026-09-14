@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import { Command } from 'commander'
 import { AolServer, openDb, Repo, aolHome, dbPath, socketPath, decide, PROTOCOL_VERSION } from '@aol/core'
+import { hookCommand } from './hooks.js'
+import { initHooks, HOOK_EVENTS } from './init.js'
 
 const program = new Command()
 program.name('aol').description('Context integrity for AI agents').version('0.0.0')
@@ -35,6 +37,7 @@ program
     lines.push(`home             : ${aolHome()}`)
     lines.push(`database         : ${dbPath()}`)
     lines.push(`socket           : ${socketPath()}`)
+    lines.push(`hook events      : ${HOOK_EVENTS.join(', ')}`)
     try {
       const db = openDb()
       const n = db.prepare('SELECT COUNT(*) AS n FROM _migrations').get() as { n: number }
@@ -88,6 +91,38 @@ program
     }
     db.close()
     // Detection rates land in M4, once detectors and the control window exist.
+  })
+
+program
+  .command('hook')
+  .description('Hook dispatch entrypoint (reads a hook payload on stdin)')
+  .action(hookCommand)
+
+program
+  .command('init')
+  .description('Register AOL hooks in Claude Code settings')
+  .option('--project', 'write to ./.claude/settings.json instead of the user settings')
+  .option('--dry-run', 'show what would change without writing')
+  .option('--command <cmd>', 'override the hook command')
+  .action((opts: { project?: boolean; dryRun?: boolean; command?: string }) => {
+    try {
+      const r = initHooks({
+        scope: opts.project ? 'project' : 'user',
+        ...(opts.dryRun ? { dryRun: true } : {}),
+        ...(opts.command ? { command: opts.command } : {}),
+      })
+      const verb = r.dryRun ? 'would register' : 'registered'
+      process.stdout.write(`${r.dryRun ? '[dry run] ' : ''}${r.path}\n`)
+      if (r.backup) process.stdout.write(`backup: ${r.backup}\n`)
+      process.stdout.write(`${verb}: ${r.added.length ? r.added.join(', ') : '(none)'}\n`)
+      if (r.skipped.length) process.stdout.write(`already present: ${r.skipped.join(', ')}\n`)
+      if (!r.dryRun && r.added.length) {
+        process.stdout.write('\nStart the daemon with `aol daemon`, then restart Claude Code.\n')
+      }
+    } catch (err) {
+      process.stderr.write(`${String(err instanceof Error ? err.message : err)}\n`)
+      process.exitCode = 1
+    }
   })
 
 program.parseAsync(process.argv)

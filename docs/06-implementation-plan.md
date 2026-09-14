@@ -57,8 +57,13 @@ aol/
 │  │     ├─ telemetry/otel.ts    # gen_ai.* span emission
 │  │     └─ report/render.ts
 │  ├─ cli/                       # npx @aol/cli — init, report, doctor, daemon
-│  ├─ adapter-agent-hooks-ts/    # npm @aol/hooks
-│  └─ adapter-claude-code/       # hook dispatch binary
+│  └─ adapter-agent-hooks-ts/    # npm @aol/hooks
+│     # NOTE: Claude Code hook dispatch lives in packages/cli as `aol hook`,
+│     # not in its own package. Claude Code invokes hooks as shell commands,
+│     # so the adapter is a dispatcher, and a second package would add
+│     # publishing overhead with no user benefit. The Agent Hooks adapters in
+│     # M6 DO get their own packages — they are imported as libraries into a
+│     # user's agent code, which is a different shape.
 ├─ python/
 │  └─ aol_hooks/                 # pip aol-hooks — agent-hooks Interceptor → UDS
 ├─ test/fixtures/                # anonymised transcript + interception fixtures
@@ -153,8 +158,8 @@ Blocking alone leaves the user stuck with a damaged agent and no path forward. R
 
 | # | Deliverable | Done when | Est. |
 | --- | --- | --- | --- |
-| **M1** | Core daemon skeleton: UDS server, framing, normalised event model, verdict protocol, SQLite store, **fail-closed default** | A synthetic adapter drives an interception end-to-end and a deny is honoured | 3 d |
-| **M2** | Claude Code adapter + transcript reader | A real auto-compaction is captured end-to-end; the compaction marker is identified **empirically** | 2 d |
+| **M1** | Core daemon skeleton: UDS server, framing, normalised event model, verdict protocol, SQLite store, **fail-closed default** | A synthetic adapter drives an interception end-to-end and a deny is honoured | 3 d ✅ |
+| **M2** | Claude Code adapter + transcript reader | A real auto-compaction is captured end-to-end; the compaction marker is identified **empirically** | 2 d ✅ |
 | **M3** | Extractors: constraints, artifacts, commitments | Run over existing local transcripts; output is inspectable and sane | 3 d |
 | **M4** | Detectors D1–D4 + control window; `aol report` | Per-event loss rates print against control | 3 d |
 | **M5** | D5 violation detection | A real post-mutation violation is caught and shown | 2 d |
@@ -197,6 +202,7 @@ No infrastructure, no accounts, no telemetry. Local-only is the trust argument f
 
 - **Fail-closed is the default**, per AGENT-HOOKS-0.1: unreachable, timed-out or malformed verdicts become a deny. Every other error path in an adapter must degrade to a logged `allow` rather than crashing a user's agent — and that asymmetry is deliberate and documented.
 - Core decision budget: **under 50ms** per interception. Heavy detection runs on the mutation event, never in the tool path.
+- **Hook registration stays minimal.** Claude Code spawns a process per hook, measured at ~157ms (≈102ms node startup + ≈55ms npx resolution). `aol init` registers compaction and session events only; per-tool hooks fire on every tool call and are added in M4/M5, when their data is consumed. Any new hook registration must justify its per-invocation cost.
 - **No network calls in P1/P2.** Enforced in review, not merely intended.
 - Every detector ships with fixture tests before it counts as done.
 - Conventional commits; GitHub issues mirror §5 one-to-one.
