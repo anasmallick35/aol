@@ -1,4 +1,4 @@
-"""Tests for the AOL Agent Hooks interceptor.
+"""Tests for the ContextKeep Agent Hooks interceptor.
 
 stdlib unittest, no pytest dependency — this package ships with zero
 dependencies and its tests should not quietly require one.
@@ -16,8 +16,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from aol_hooks import AolInterceptor, decide, fail_closed, to_interception, to_verdict  # noqa: E402
-from aol_hooks.protocol import encode_frame, read_frame  # noqa: E402
+from contextkeep_hooks import ContextKeepInterceptor, decide, fail_closed, to_interception, to_verdict  # noqa: E402
+from contextkeep_hooks.protocol import encode_frame, read_frame  # noqa: E402
 
 
 class FakeDaemon:
@@ -149,7 +149,7 @@ class TestVerdictCollapse(unittest.TestCase):
 
 class TestClientFailsClosed(unittest.TestCase):
     def test_unreachable_daemon_denies(self):
-        v = decide({"point": "pre_tool"}, socket_path="/tmp/aol-does-not-exist.sock")
+        v = decide({"point": "pre_tool"}, socket_path="/tmp/contextkeep-does-not-exist.sock")
         self.assertEqual(v["decision"], "deny")
         self.assertEqual(v["reason"], "unreachable")
 
@@ -181,7 +181,7 @@ class TestInterceptorNeverRaises(unittest.TestCase):
     unhandled error of ours would block a user's agent."""
 
     def test_allows_and_warns_when_the_daemon_is_down(self):
-        i = AolInterceptor(socket_path="/tmp/aol-does-not-exist.sock", timeout_s=0.2)
+        i = ContextKeepInterceptor(socket_path="/tmp/contextkeep-does-not-exist.sock", timeout_s=0.2)
         v = i.intercept(ctx())
         self.assertEqual(v["decision"], "deny")  # fail-closed from the client
         self.assertEqual(v["reason"], "unreachable")
@@ -189,7 +189,7 @@ class TestInterceptorNeverRaises(unittest.TestCase):
     def test_end_to_end_against_a_daemon(self):
         d = FakeDaemon({"protocolVersion": 1, "decision": "deny", "reason": "constraint_violation", "message": "never edit prod"})
         try:
-            v = AolInterceptor(socket_path=d.path, timeout_s=1.0).intercept(ctx())
+            v = ContextKeepInterceptor(socket_path=d.path, timeout_s=1.0).intercept(ctx())
             self.assertEqual(v["decision"], "deny")
             self.assertEqual(v["reason"], "constraint_violation")
             self.assertEqual(d.received[0]["adapter"], "agent-hooks")
@@ -198,7 +198,7 @@ class TestInterceptorNeverRaises(unittest.TestCase):
             d.close()
 
     def test_survives_a_context_that_is_not_a_dict(self):
-        i = AolInterceptor(socket_path="/tmp/nope.sock", timeout_s=0.2)
+        i = ContextKeepInterceptor(socket_path="/tmp/nope.sock", timeout_s=0.2)
         self.assertIn("decision", i.intercept({}))
 
 

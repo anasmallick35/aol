@@ -1,4 +1,4 @@
-# AOL — Working Agreement
+# ContextKeep — Working Agreement
 
 **Purpose:** the operational decisions that live in conversation and would otherwise be lost. If a session's context is compacted or a new collaborator joins, this is the file that says *how we work*, as opposed to *what we're building*.
 

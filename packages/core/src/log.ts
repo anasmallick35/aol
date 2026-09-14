@@ -6,7 +6,7 @@ type Level = 'debug' | 'info' | 'warn' | 'error'
 const LEVELS: Record<Level, number> = { debug: 10, info: 20, warn: 30, error: 40 }
 
 function threshold(): number {
-  const raw = (process.env.AOL_LOG_LEVEL ?? 'info') as Level | 'silent'
+  const raw = (process.env.CONTEXTKEEP_LOG_LEVEL ?? 'info') as Level | 'silent'
   if (raw === 'silent') return Number.POSITIVE_INFINITY
   return LEVELS[raw as Level] ?? LEVELS.info
 }
@@ -25,7 +25,7 @@ export function log(level: Level, msg: string, fields: Record<string, unknown> =
       ensureHome()
       appendFileSync(errorLogPath(), line + '\n')
     }
-    if (process.env.AOL_LOG_STDERR === '1' || level === 'error') {
+    if (process.env.CONTEXTKEEP_LOG_STDERR === '1' || level === 'error') {
       process.stderr.write(line + '\n')
     }
   } catch {

@@ -1,12 +1,40 @@
 {
-  "name": "@aol/hooks",
-  "version": "0.0.0",
+  "name": "@contextkeep/hooks",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
-  "scripts": { "build": "tsup src/index.ts --format esm --dts --clean --tsconfig tsconfig.build.json" },
-  "dependencies": { "@aol/core": "*" },
-  "peerDependenciesMeta": { "@responsibleai/agent-hooks": { "optional": true } }
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean --tsconfig tsconfig.build.json"
+  },
+  "dependencies": {
+    "@contextkeep/core": "*"
+  },
+  "peerDependenciesMeta": {
+    "@responsibleai/agent-hooks": {
+      "optional": true
+    }
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anasmallick35/contextkeep.git"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22"
+  }
 }

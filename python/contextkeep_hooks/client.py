@@ -1,4 +1,4 @@
-"""Client for the AOL daemon."""
+"""Client for the ContextKeep daemon."""
 
 from __future__ import annotations
 
@@ -14,14 +14,14 @@ DEFAULT_TIMEOUT_S = 2.0
 
 
 def default_socket_path() -> str:
-    env = os.environ.get("AOL_SOCKET")
+    env = os.environ.get("CONTEXTKEEP_SOCKET")
     if env:
         return env
-    home = os.environ.get("AOL_HOME") or str(Path.home() / ".aol")
-    preferred = os.path.join(home, "aol.sock")
+    home = os.environ.get("CONTEXTKEEP_HOME") or str(Path.home() / ".aol")
+    preferred = os.path.join(home, "contextkeep.sock")
     # Unix socket paths are capped near 104 bytes on macOS; fall back rather
     # than failing at connect time with a confusing error.
-    return preferred if len(preferred) < 100 else "/tmp/aol.sock"
+    return preferred if len(preferred) < 100 else "/tmp/contextkeep.sock"
 
 
 def fail_closed(reason: str) -> Dict[str, Any]:
@@ -35,7 +35,7 @@ def fail_closed(reason: str) -> Dict[str, Any]:
         "protocolVersion": PROTOCOL_VERSION,
         "decision": "deny",
         "reason": reason,
-        "message": f"AOL could not complete a decision ({reason}); denying per fail-closed policy.",
+        "message": f"ContextKeep could not complete a decision ({reason}); denying per fail-closed policy.",
         "detections": [],
     }
 

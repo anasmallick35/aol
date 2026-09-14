@@ -1,4 +1,4 @@
-# AOL — Implementation Plan
+# ContextKeep — Implementation Plan
 
 **Status:** LOCKED for build. **Rewritten after Round 5** — the previous version was built around Claude Code hooks and was wrong.
 **Stack and architecture rationale:** [07-stack-and-architecture-decisions.md](07-stack-and-architecture-decisions.md). This doc is the build sequence.
@@ -19,8 +19,8 @@ One adapter-agnostic **core daemon**, thin **adapters** that speak to it, per [0
          └────────────┴────────────┘
                       │  UDS, length-prefixed JSON
               ┌───────▼────────┐
-              │   AOL CORE     │   normalise → capture → detect → verdict
-              │  (TypeScript)  │   SQLite at ~/.aol/aol.db
+              │ CONTEXTKEEP CORE│   normalise → capture → detect → verdict
+              │  (TypeScript)  │   SQLite at ~/.contextkeep/contextkeep.db
               └───────┬────────┘
                       ├──► verdict: allow | warn | deny | transform
                       └──► OTel gen_ai.* spans
@@ -56,16 +56,16 @@ aol/
 │  │     ├─ store/               # better-sqlite3 + migrations + typed queries
 │  │     ├─ telemetry/otel.ts    # gen_ai.* span emission
 │  │     └─ report/render.ts
-│  ├─ cli/                       # npx @aol/cli — init, report, doctor, daemon
-│  └─ adapter-agent-hooks-ts/    # npm @aol/hooks
-│     # NOTE: Claude Code hook dispatch lives in packages/cli as `aol hook`,
+│  ├─ cli/                       # npx contextkeep — init, report, doctor, daemon
+│  └─ adapter-agent-hooks-ts/    # npm @contextkeep/hooks
+│     # NOTE: Claude Code hook dispatch lives in packages/cli as `contextkeep hook`,
 │     # not in its own package. Claude Code invokes hooks as shell commands,
 │     # so the adapter is a dispatcher, and a second package would add
 │     # publishing overhead with no user benefit. The Agent Hooks adapters in
 │     # M6 DO get their own packages — they are imported as libraries into a
 │     # user's agent code, which is a different shape.
 ├─ python/
-│  └─ aol_hooks/                 # pip aol-hooks — agent-hooks Interceptor → UDS
+│  └─ contextkeep_hooks/                 # pip contextkeep-hooks — agent-hooks Interceptor → UDS
 ├─ test/fixtures/                # anonymised transcript + interception fixtures
 └─ README.md
 ```
@@ -161,11 +161,11 @@ Blocking alone leaves the user stuck with a damaged agent and no path forward. R
 | **M1** | Core daemon skeleton: UDS server, framing, normalised event model, verdict protocol, SQLite store, **fail-closed default** | A synthetic adapter drives an interception end-to-end and a deny is honoured | 3 d ✅ |
 | **M2** | Claude Code adapter + transcript reader | A real auto-compaction is captured end-to-end; the compaction marker is identified **empirically** | 2 d ✅ |
 | **M3** | Extractors: constraints, artifacts, commitments | Run over existing local transcripts; output is inspectable and sane | 3 d |
-| **M4** | Detectors D1–D4 + control window; `aol report` | Per-event loss rates print against control | 3 d |
+| **M4** | Detectors D1–D4 + control window; `contextkeep report` | Per-event loss rates print against control | 3 d |
 | **M5** | D5 violation detection | A real post-mutation violation is caught and shown | 2 d |
 | **M6** | Agent Hooks adapters (Python + TypeScript) | LangGraph and CrewAI sample agents run through the gate | 4 d |
 | **M7** | Enforcement: `deny`/`transform` verdicts, `--warn` / `--block` modes | A violating tool call is blocked with a clear message | 3 d |
-| **M8** | Packaging: `npx @aol/cli`, `pip install aol-hooks`, `npm i @aol/hooks`, README, public repo | A stranger installs in one command and gets a report | 3 d |
+| **M8** | Packaging: `npx contextkeep`, `pip install contextkeep-hooks`, `npm i @contextkeep/hooks`, README, public repo | A stranger installs in one command and gets a report | 3 d |
 
 **P1 (M1–M5): ~13 days. P2 (M6–M7): ~7 days. With packaging: ~4 weeks calendar for two people.**
 
@@ -202,7 +202,7 @@ No infrastructure, no accounts, no telemetry. Local-only is the trust argument f
 
 - **Fail-closed is the default**, per AGENT-HOOKS-0.1: unreachable, timed-out or malformed verdicts become a deny. Every other error path in an adapter must degrade to a logged `allow` rather than crashing a user's agent — and that asymmetry is deliberate and documented.
 - Core decision budget: **under 50ms** per interception. Heavy detection runs on the mutation event, never in the tool path.
-- **Hook registration stays minimal.** Claude Code spawns a process per hook, measured at ~157ms (≈102ms node startup + ≈55ms npx resolution). `aol init` registers compaction and session events only; per-tool hooks fire on every tool call and are added in M4/M5, when their data is consumed. Any new hook registration must justify its per-invocation cost.
+- **Hook registration stays minimal.** Claude Code spawns a process per hook, measured at ~157ms (≈102ms node startup + ≈55ms npx resolution). `contextkeep init` registers compaction and session events only; per-tool hooks fire on every tool call and are added in M4/M5, when their data is consumed. Any new hook registration must justify its per-invocation cost.
 - **No network calls in P1/P2.** Enforced in review, not merely intended.
 - Every detector ships with fixture tests before it counts as done.
 - Conventional commits; GitHub issues mirror §5 one-to-one.

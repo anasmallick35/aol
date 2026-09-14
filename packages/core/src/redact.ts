@@ -4,7 +4,7 @@
  * A violation report is only actionable if it shows what the agent tried to do,
  * but tool inputs routinely carry live credentials — an `Authorization` header,
  * an API key in a URL, the contents of a `.env`. Writing those verbatim would
- * turn ~/.aol/aol.db into a credential store, which is an indefensible artifact
+ * turn ~/.contextkeep/contextkeep.db into a credential store, which is an indefensible artifact
  * for a product whose pitch is trust.
  *
  * HONEST LIMIT: this is pattern matching, not a guarantee. It catches the

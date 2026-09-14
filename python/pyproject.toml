@@ -3,8 +3,8 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "aol-hooks"
-version = "0.0.0"
+name = "contextkeep-hooks"
+version = "0.1.0"
 description = "Context integrity for AI agents — an AGENT-HOOKS-0.1 interceptor"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -17,4 +17,4 @@ dependencies = []
 dev = ["pytest>=7"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["aol_hooks"]
+packages = ["contextkeep_hooks"]

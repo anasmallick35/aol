@@ -1,4 +1,4 @@
-# AOL — Stage 0: Research Findings
+# ContextKeep — Stage 0: Research Findings
 
 **Status:** Stage 0 desk research complete through Round 5 (2026-09-13). Round 5 covers integration architecture and overturned the Claude-Code-centric design.
 **Feeds:** [02-fundamentals-decision-log.md](02-fundamentals-decision-log.md)

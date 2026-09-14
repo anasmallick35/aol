@@ -33,7 +33,7 @@ export interface ServerOptions {
   decide?: (e: Interception, ctx: { repo: Repo }) => Verdict | Promise<Verdict>
 }
 
-export class AolServer {
+export class ContextKeepServer {
   readonly #server: net.Server
   readonly #path: string
   readonly #db: DB
@@ -89,7 +89,7 @@ export class AolServer {
       // reason about, so we have no basis to permit it.
       verdict =
         !event || (this.#failureMode === 'enforce' && isEnforcingPoint(event.point))
-          ? deny(reason, 'AOL could not evaluate this interception.')
+          ? deny(reason, 'ContextKeep could not evaluate this interception.')
           : allow()
     }
 
@@ -120,7 +120,7 @@ export class AolServer {
       this.#server.once('error', reject)
       this.#server.listen(this.#path, () => {
         this.#server.removeListener('error', reject)
-        logger.info('aol daemon listening', { path: this.#path, failureMode: this.#failureMode })
+        logger.info('contextkeep daemon listening', { path: this.#path, failureMode: this.#failureMode })
         resolve(this.#path)
       })
     })
