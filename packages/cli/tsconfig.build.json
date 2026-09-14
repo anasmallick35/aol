@@ -1,5 +1,13 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "composite": false, "declarationMap": false, "declaration": false, "outDir": "./dist", "rootDir": "./src" },
+  "compilerOptions": {
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "baseUrl": ".",
+    "paths": { "@aol/core": ["../core/src/index.ts"] }
+  },
   "include": ["src/**/*"]
 }

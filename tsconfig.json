@@ -1,7 +1,10 @@
 {
-  "files": [],
-  "references": [
-    { "path": "./packages/core" },
-    { "path": "./packages/cli" }
-  ]
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": { "@aol/core": ["./packages/core/src/index.ts"] },
+    "types": ["node"]
+  },
+  "include": ["packages/*/src/**/*", "packages/*/test/**/*", "vitest.config.ts"]
 }
