@@ -1,4 +1,4 @@
-# AOL — Stage 1: Fundamentals Decision Log
+# ContextKeep — Stage 1: Fundamentals Decision Log
 
 **Status:** PROPOSED-RESOLVED — D1–D7 all have a proposed decision recorded in [05-product-plan.md §5](05-product-plan.md). They close formally when **A1 (compaction damage is mechanically detectable)** is answered by [Experiment 01](04-experiment-01-compaction-detectability.md). Reasoning trail in [03-decision-debate-log.md](03-decision-debate-log.md), Threads 2–10.
 **Input:** [00-project-brief.md](00-project-brief.md) · [01-research-findings.md](01-research-findings.md) (Round 1 desk research complete)

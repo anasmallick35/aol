@@ -90,7 +90,7 @@ export function failClosed(reason: string): Verdict {
     protocolVersion: PROTOCOL_VERSION,
     decision: 'deny',
     reason,
-    message: `AOL could not complete a decision (${reason}); denying per fail-closed policy.`,
+    message: `ContextKeep could not complete a decision (${reason}); denying per fail-closed policy.`,
     detections: [],
   }
 }

@@ -20,7 +20,7 @@ const event = (over: Partial<Interception> = {}): Interception => ({
 })
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'aol-store-'))
+  dir = mkdtempSync(join(tmpdir(), 'contextkeep-store-'))
   db = openDb(join(dir, 'test.db'))
 })
 

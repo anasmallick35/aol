@@ -134,13 +134,13 @@ def to_verdict(v: Dict[str, Any], point: str) -> Dict[str, Any]:
             "decision": "transform",
             "reason": reason,
             "message": message,
-            "transform": {"path": "/extensions/aol_restore", "value": transform.get("restore", [])},
+            "transform": {"path": "/extensions/contextkeep_restore", "value": transform.get("restore", [])},
         }
 
     return {"decision": "allow"}
 
 
-class AolInterceptor:
+class ContextKeepInterceptor:
     """Context-integrity interceptor.
 
     Satisfies the AGENT-HOOKS `Interceptor` protocol: one `intercept`
@@ -160,9 +160,9 @@ class AolInterceptor:
         except Exception:
             return {
                 "decision": "allow",
-                "warnings": [{"reason": "aol_unavailable", "message": "AOL interceptor error; action not evaluated"}],
+                "warnings": [{"reason": "contextkeep_unavailable", "message": "ContextKeep interceptor error; action not evaluated"}],
             }
 
 
-def create_interceptor(socket_path: Optional[str] = None, timeout_s: float = 2.0) -> AolInterceptor:
-    return AolInterceptor(socket_path=socket_path, timeout_s=timeout_s)
+def create_interceptor(socket_path: Optional[str] = None, timeout_s: float = 2.0) -> ContextKeepInterceptor:
+    return ContextKeepInterceptor(socket_path=socket_path, timeout_s=timeout_s)

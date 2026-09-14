@@ -8,7 +8,7 @@ import {
   logger,
   type Interception,
   type InterceptionPoint,
-} from '@aol/core'
+} from '@contextkeep/core'
 
 /**
  * Claude Code hook dispatch.
@@ -178,7 +178,7 @@ export async function runHook(rawInput: string): Promise<number> {
 
   // Surface warnings on stderr so the user sees them without the run stopping.
   if (verdict.decision === 'warn' && verdict.message) {
-    process.stderr.write(`\n[aol] ${verdict.message}\n`)
+    process.stderr.write(`\n[contextkeep] ${verdict.message}\n`)
   }
 
   if (verdict.decision === 'deny') {
@@ -193,7 +193,7 @@ export async function runHook(rawInput: string): Promise<number> {
     // actually prevent anything; denying elsewhere would stop the session for
     // something that has already happened.
     if (isEnforcingPoint(point)) {
-      process.stderr.write(`\n[aol] BLOCKED — ${verdict.message ?? verdict.reason ?? 'constraint violation'}\n`)
+      process.stderr.write(`\n[contextkeep] BLOCKED — ${verdict.message ?? verdict.reason ?? 'constraint violation'}\n`)
       return 2
     }
     logger.info('deny at a non-enforcing point; not blocking', { point, reason: verdict.reason })

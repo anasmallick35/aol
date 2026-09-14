@@ -14,7 +14,7 @@ const write = (content: string) => {
 }
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'aol-win-'))
+  dir = mkdtempSync(join(tmpdir(), 'contextkeep-win-'))
 })
 afterEach(() => {
   rmSync(dir, { recursive: true, force: true })

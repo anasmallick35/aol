@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 import { Command } from 'commander'
 import {
-  AolServer, openDb, Repo, aolHome, dbPath, socketPath, decide, PROTOCOL_VERSION,
+  ContextKeepServer, openDb, Repo, contextKeepHome, dbPath, socketPath, decide, PROTOCOL_VERSION,
   findCompactBoundaries, sliceWindows, streamTranscript, isConversational, detect, renderReport,
   createGate, capabilitiesFor,
   type TranscriptEntry, type GateMode,
-} from '@aol/core'
+} from '@contextkeep/core'
 import { hookCommand } from './hooks.js'
 import { initHooks, HOOK_EVENTS } from './init.js'
 
 const program = new Command()
-program.name('aol').description('Context integrity for AI agents').version('0.0.0')
+program.name('contextkeep').description('Context integrity for AI agents').version('0.0.0')
 
 program
   .command('daemon')
@@ -21,13 +21,13 @@ program
   .option('--repair-budget <tokens>', 'tokens available for re-injecting dropped context', '2000')
   .action(async (opts: { socket?: string; mode: GateMode; failureMode: 'observe' | 'enforce'; repairBudget: string }) => {
     const gate = createGate({ mode: opts.mode, maxTokens: Number(opts.repairBudget) })
-    const server = new AolServer({
+    const server = new ContextKeepServer({
       ...(opts.socket ? { socketPath: opts.socket } : {}),
       failureMode: opts.failureMode,
       decide: (event, ctx) => gate.decide(event, ctx),
     })
     const addr = await server.listen()
-    process.stdout.write(`aol daemon listening on ${addr}\n`)
+    process.stdout.write(`contextkeep daemon listening on ${addr}\n`)
     process.stdout.write(`  mode: ${opts.mode}   (observe = silent, warn = surface findings, block = deny violating actions)\n`)
     process.stdout.write(`  repair budget: ${opts.repairBudget} tokens\n`)
     const shutdown = async () => {
@@ -45,7 +45,7 @@ program
     const lines: string[] = []
     lines.push(`protocol version : ${PROTOCOL_VERSION}`)
     lines.push(`node             : ${process.version}`)
-    lines.push(`home             : ${aolHome()}`)
+    lines.push(`home             : ${contextKeepHome()}`)
     lines.push(`database         : ${dbPath()}`)
     lines.push(`socket           : ${socketPath()}`)
     lines.push(`hook events      : ${HOOK_EVENTS.join(', ')}`)
@@ -73,7 +73,7 @@ program
     )
     lines.push(
       v.reason === 'unreachable'
-        ? 'daemon           : not running (start with `aol daemon`)'
+        ? 'daemon           : not running (start with `contextkeep daemon`)'
         : `daemon           : reachable, verdict=${v.decision} in ${v.elapsedMs?.toFixed(2)}ms`,
     )
     process.stdout.write(lines.join('\n') + '\n')
@@ -103,7 +103,7 @@ program
       .all(...(opts.session ? [opts.session] : [])) as Array<{ id: string; adapter: string; cwd: string | null; n: number }>
 
     if (rows.length === 0) {
-      process.stdout.write('No sessions recorded yet. Run `aol init`, start `aol daemon`, and use Claude Code.\n')
+      process.stdout.write('No sessions recorded yet. Run `contextkeep init`, start `contextkeep daemon`, and use Claude Code.\n')
       db.close()
       return
     }
@@ -113,7 +113,7 @@ program
       process.stdout.write(`\n${r.id}  ${r.adapter}  ${r.n} interceptions  ${events.length} compaction(s)\n`)
       if (r.cwd) process.stdout.write(`  ${r.cwd}\n`)
     }
-    process.stdout.write('\nAnalyse a specific transcript with: aol report --transcript <path> --verbose\n')
+    process.stdout.write('\nAnalyse a specific transcript with: contextkeep report --transcript <path> --verbose\n')
     db.close()
   })
 
@@ -145,7 +145,7 @@ program
 
 program
   .command('init')
-  .description('Register AOL hooks in Claude Code settings')
+  .description('Register ContextKeep hooks in Claude Code settings')
   .option('--project', 'write to ./.claude/settings.json instead of the user settings')
   .option('--dry-run', 'show what would change without writing')
   .option('--command <cmd>', 'override the hook command')
@@ -162,7 +162,7 @@ program
       process.stdout.write(`${verb}: ${r.added.length ? r.added.join(', ') : '(none)'}\n`)
       if (r.skipped.length) process.stdout.write(`already present: ${r.skipped.join(', ')}\n`)
       if (!r.dryRun && r.added.length) {
-        process.stdout.write('\nStart the daemon with `aol daemon`, then restart Claude Code.\n')
+        process.stdout.write('\nStart the daemon with `contextkeep daemon`, then restart Claude Code.\n')
       }
     } catch (err) {
       process.stderr.write(`${String(err instanceof Error ? err.message : err)}\n`)

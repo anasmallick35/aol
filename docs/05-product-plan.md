@@ -1,4 +1,4 @@
-# AOL — Product Plan v1
+# ContextKeep — Product Plan v1
 
 **Status:** PROPOSED. Committing to a direction, with the two assumptions it rests on stated explicitly and the consequences of being wrong written down.
 **Inputs:** [00-brief](00-project-brief.md) · [01-research (Rounds 1–4)](01-research-findings.md) · [02-decisions](02-fundamentals-decision-log.md) · [03-debate](03-decision-debate-log.md) · [04-experiment-01](04-experiment-01-compaction-detectability.md)
@@ -24,7 +24,7 @@ Stage 0 produced one asymmetry that decides everything:
 
 Positioning: **the flight recorder and circuit breaker for agent context.** Not "Cloudflare for AI inference" — that framing describes the commoditising layer and collides with Cloudflare AI Gateway [R3-a].
 
-**Naming note, bluntly:** "AI Optimization Layer" now names the thing the market is giving away. Keep AOL as internal codename; the external name should describe integrity, not optimisation.
+**Naming — RESOLVED (Thread 12, 2026-09-14):** "AI Optimization Layer" named the thing the market is giving away, so the product ships as **ContextKeep** — `contextkeep` on npm, `contextkeep-hooks` on PyPI. `aol` survives only as the private repo name.
 
 ### The one-sentence differentiation
 

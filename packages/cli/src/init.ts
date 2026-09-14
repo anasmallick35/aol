@@ -13,16 +13,16 @@ import { join, dirname } from 'node:path'
  * How we recognise a hook entry as ours.
  *
  * A literal substring does not work: the default command is
- * `npx -y @aol/cli hook`, which does not contain "aol hook" — it contains
- * "@aol/cli hook". Matching literally made `init` non-idempotent and
+ * `npx -y contextkeep hook`, which does not contain "contextkeep hook" — it contains
+ * "contextkeep hook". Matching literally made `init` non-idempotent and
  * duplicated every hook on a second run.
  *
- * KNOWN LIMIT: a fully custom `--command` with no "aol" in it (say
+ * KNOWN LIMIT: a fully custom `--command` with no "contextkeep" in it (say
  * `node dist/cli.js hook`) will not be recognised, so re-running init would
  * add a second entry. Documented rather than solved, because writing a private
  * marker field into the user's settings file is worse.
  */
-const AOL_MARKER = /aol.*\bhook\b/i
+const CK_MARKER = /contextkeep.*\bhook\b|\bck\s+hook\b/i
 
 /**
  * Events we register for.
@@ -37,7 +37,7 @@ const AOL_MARKER = /aol.*\bhook\b/i
  * irrelevant. Tool hooks get added in M4/M5, when they buy something.
  *
  * The dispatcher in hooks.ts still handles tool events, so a user who registers
- * them by hand works correctly. This list only governs what `aol init` writes.
+ * them by hand works correctly. This list only governs what `contextkeep init` writes.
  */
 export const HOOK_EVENTS = ['PreCompact', 'PostCompact', 'SessionStart', 'SessionEnd'] as const
 
@@ -61,7 +61,7 @@ export function mergeHooks(settings: Settings, command: string): { settings: Set
 
   for (const event of HOOK_EVENTS) {
     const existing = out.hooks![event] ?? []
-    const alreadyOurs = existing.some((m) => m.hooks?.some((h) => AOL_MARKER.test(h.command ?? '')))
+    const alreadyOurs = existing.some((m) => m.hooks?.some((h) => CK_MARKER.test(h.command ?? '')))
     if (alreadyOurs) {
       skipped.push(event)
       continue
@@ -82,7 +82,7 @@ export interface InitResult {
 
 export function initHooks(opts: { scope?: 'user' | 'project'; command?: string; dryRun?: boolean; cwd?: string } = {}): InitResult {
   const path = settingsPath(opts.scope ?? 'user', opts.cwd)
-  const command = opts.command ?? 'npx -y @aol/cli hook'
+  const command = opts.command ?? 'npx -y contextkeep hook'
 
   let current: Settings = {}
   if (existsSync(path)) {
@@ -101,7 +101,7 @@ export function initHooks(opts: { scope?: 'user' | 'project'; command?: string; 
   mkdirSync(dirname(path), { recursive: true })
   let backup: string | undefined
   if (existsSync(path)) {
-    backup = `${path}.aol-backup`
+    backup = `${path}.contextkeep-backup`
     copyFileSync(path, backup)
   }
   writeFileSync(path, JSON.stringify(settings, null, 2) + '\n')

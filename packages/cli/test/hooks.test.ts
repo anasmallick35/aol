@@ -2,23 +2,23 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { AolServer, openDb, type DB, type Interception } from '@aol/core'
+import { ContextKeepServer, openDb, type DB, type Interception } from '@contextkeep/core'
 import { runHook } from '../src/hooks.js'
 import { buildTranscript, msg } from '../../core/test/fixtures/transcript.js'
 
 let dir: string
 let sock: string
 let db: DB
-let server: AolServer
+let server: ContextKeepServer
 let seen: Interception[]
 
 beforeEach(async () => {
-  dir = mkdtempSync(join(tmpdir(), 'aol-hook-'))
+  dir = mkdtempSync(join(tmpdir(), 'contextkeep-hook-'))
   sock = join(dir, 'h.sock')
   db = openDb(join(dir, 'test.db'))
   seen = []
-  process.env.AOL_SOCKET = sock
-  server = new AolServer({
+  process.env.CONTEXTKEEP_SOCKET = sock
+  server = new ContextKeepServer({
     socketPath: sock,
     db,
     decide: (e) => {
@@ -31,7 +31,7 @@ beforeEach(async () => {
 
 afterEach(async () => {
   await server.close()
-  delete process.env.AOL_SOCKET
+  delete process.env.CONTEXTKEEP_SOCKET
   rmSync(dir, { recursive: true, force: true })
 })
 

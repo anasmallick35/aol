@@ -7,7 +7,7 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "baseUrl": ".",
-    "paths": { "@aol/core": ["../core/src/index.ts"] }
+    "paths": { "@contextkeep/core": ["../core/src/index.ts"] }
   },
   "include": ["src/**/*"]
 }

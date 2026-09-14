@@ -6,7 +6,7 @@ import { mergeHooks, initHooks, buildHookEntry, HOOK_EVENTS } from '../src/init.
 
 let dir: string
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'aol-init-'))
+  dir = mkdtempSync(join(tmpdir(), 'contextkeep-init-'))
   mkdirSync(join(dir, '.claude'), { recursive: true })
 })
 afterEach(() => rmSync(dir, { recursive: true, force: true }))
@@ -15,7 +15,7 @@ const settingsFile = () => join(dir, '.claude', 'settings.json')
 
 describe('mergeHooks', () => {
   it('registers every event on empty settings', () => {
-    const { settings, added } = mergeHooks({}, 'aol hook')
+    const { settings, added } = mergeHooks({}, 'contextkeep hook')
     expect(added).toEqual([...HOOK_EVENTS])
     expect(Object.keys(settings.hooks!)).toEqual([...HOOK_EVENTS])
   })
@@ -38,7 +38,7 @@ describe('mergeHooks', () => {
         PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: 'my-linter' }] }],
       },
     }
-    const { settings } = mergeHooks(existing, 'aol hook')
+    const { settings } = mergeHooks(existing, 'contextkeep hook')
     expect(settings.model).toBe('opus')
     // Ours is appended alongside theirs, never in place of it.
     const preCompact = settings.hooks!.PreCompact!
@@ -49,20 +49,20 @@ describe('mergeHooks', () => {
   })
 
   it('is idempotent — running twice does not duplicate our hook', () => {
-    const first = mergeHooks({}, 'aol hook')
-    const second = mergeHooks(first.settings, 'aol hook')
+    const first = mergeHooks({}, 'contextkeep hook')
+    const second = mergeHooks(first.settings, 'contextkeep hook')
     expect(second.added).toEqual([])
     expect(second.skipped).toEqual([...HOOK_EVENTS])
     expect(second.settings.hooks!.PreCompact).toHaveLength(1)
   })
 
   it.each([
-    ['npx default', 'npx -y @aol/cli hook'],
-    ['global bin', 'aol hook'],
-    ['absolute path', '/usr/local/bin/node /opt/aol/cli.js hook --verbose'],
-    ['pnpm dlx', 'pnpm dlx @aol/cli hook'],
+    ['npx default', 'npx -y contextkeep hook'],
+    ['global bin', 'contextkeep hook'],
+    ['absolute path', '/usr/local/bin/node /opt/contextkeep/cli.js hook --verbose'],
+    ['pnpm dlx', 'pnpm dlx contextkeep hook'],
   ])('stays idempotent for the %s command form', (_label, command) => {
-    // Regression: the marker was once a literal 'aol hook' substring, which the
+    // Regression: the marker was once a literal 'contextkeep hook' substring, which the
     // DEFAULT command does not contain — so init duplicated every hook on a
     // second run.
     const first = mergeHooks({}, command)
@@ -72,13 +72,13 @@ describe('mergeHooks', () => {
   })
 
   it('recognises our hook across differing command forms', () => {
-    const withCustom = mergeHooks({}, '/usr/local/bin/node /opt/aol/cli.js hook --verbose')
-    const again = mergeHooks(withCustom.settings, 'npx -y @aol/cli hook')
+    const withCustom = mergeHooks({}, '/usr/local/bin/node /opt/contextkeep/cli.js hook --verbose')
+    const again = mergeHooks(withCustom.settings, 'npx -y contextkeep hook')
     expect(again.added).toEqual([])
   })
 
   it('gives each hook a timeout so a wedged daemon cannot stall a session', () => {
-    expect(buildHookEntry('aol hook').hooks[0]!.timeout).toBe(10)
+    expect(buildHookEntry('contextkeep hook').hooks[0]!.timeout).toBe(10)
   })
 })
 
@@ -88,7 +88,7 @@ describe('initHooks', () => {
     expect(r.dryRun).toBe(false)
     expect(r.added).toEqual([...HOOK_EVENTS])
     const written = JSON.parse(readFileSync(settingsFile(), 'utf8'))
-    expect(written.hooks.PreCompact[0].hooks[0].command).toBe('npx -y @aol/cli hook')
+    expect(written.hooks.PreCompact[0].hooks[0].command).toBe('npx -y contextkeep hook')
   })
 
   it('backs up existing settings before writing', () => {
@@ -114,8 +114,8 @@ describe('initHooks', () => {
   })
 
   it('honours a custom command', () => {
-    initHooks({ scope: 'project', cwd: dir, command: '/opt/aol hook' })
+    initHooks({ scope: 'project', cwd: dir, command: '/opt/contextkeep hook' })
     const written = JSON.parse(readFileSync(settingsFile(), 'utf8'))
-    expect(written.hooks.PreCompact[0].hooks[0].command).toBe('/opt/aol hook')
+    expect(written.hooks.PreCompact[0].hooks[0].command).toBe('/opt/contextkeep hook')
   })
 })

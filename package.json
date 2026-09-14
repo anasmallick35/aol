@@ -9,7 +9,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "npm run build -w @aol/core && npm run build -w @aol/cli && npm run build -w @aol/hooks",
+    "build": "npm run build -w @contextkeep/core && npm run build -w contextkeep && npm run build -w @contextkeep/hooks",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit --pretty"

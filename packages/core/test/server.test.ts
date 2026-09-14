@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync, existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import net from 'node:net'
-import { AolServer } from '../src/server.js'
+import { ContextKeepServer } from '../src/server.js'
 import { decide } from '../src/client.js'
 import { openDb, type DB } from '../src/store/db.js'
 import { PROTOCOL_VERSION, type Interception } from '../src/events.js'
@@ -13,7 +13,7 @@ import { encodeFrame } from '../src/protocol.js'
 let dir: string
 let sock: string
 let db: DB
-let server: AolServer | undefined
+let server: ContextKeepServer | undefined
 
 const event = (over: Partial<Interception> = {}): Interception => ({
   protocolVersion: PROTOCOL_VERSION,
@@ -25,15 +25,15 @@ const event = (over: Partial<Interception> = {}): Interception => ({
   ...over,
 })
 
-async function start(opts: Partial<ConstructorParameters<typeof AolServer>[0]> = {}) {
-  server = new AolServer({ socketPath: sock, db, ...opts })
+async function start(opts: Partial<ConstructorParameters<typeof ContextKeepServer>[0]> = {}) {
+  server = new ContextKeepServer({ socketPath: sock, db, ...opts })
   await server.listen()
   return server
 }
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'aol-srv-'))
-  sock = join(dir, 'aol.sock')
+  dir = mkdtempSync(join(tmpdir(), 'contextkeep-srv-'))
+  sock = join(dir, 'contextkeep.sock')
   db = openDb(join(dir, 'test.db'))
 })
 

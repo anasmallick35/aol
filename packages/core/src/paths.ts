@@ -3,22 +3,22 @@ import { join } from 'node:path'
 import { mkdirSync } from 'node:fs'
 
 /**
- * Everything AOL writes lives under one directory the user can inspect or
+ * Everything ContextKeep writes lives under one directory the user can inspect or
  * delete. Nothing leaves the machine in P1/P2 — for a product selling
  * integrity, local-only is the trust argument, not a limitation.
  */
-export function aolHome(): string {
-  return process.env.AOL_HOME ?? join(homedir(), '.aol')
+export function contextKeepHome(): string {
+  return process.env.CONTEXTKEEP_HOME ?? join(homedir(), '.contextkeep')
 }
 
 export function ensureHome(): string {
-  const dir = aolHome()
+  const dir = contextKeepHome()
   mkdirSync(dir, { recursive: true, mode: 0o700 })
   return dir
 }
 
 export function dbPath(): string {
-  return process.env.AOL_DB ?? join(aolHome(), 'aol.db')
+  return process.env.CONTEXTKEEP_DB ?? join(contextKeepHome(), 'contextkeep.db')
 }
 
 /**
@@ -29,11 +29,11 @@ export function dbPath(): string {
  * failing at bind time with a confusing error.
  */
 export function socketPath(): string {
-  if (process.env.AOL_SOCKET) return process.env.AOL_SOCKET
-  const preferred = join(aolHome(), 'aol.sock')
-  return preferred.length < 100 ? preferred : join(tmpdir(), 'aol.sock')
+  if (process.env.CONTEXTKEEP_SOCKET) return process.env.CONTEXTKEEP_SOCKET
+  const preferred = join(contextKeepHome(), 'contextkeep.sock')
+  return preferred.length < 100 ? preferred : join(tmpdir(), 'contextkeep.sock')
 }
 
 export function errorLogPath(): string {
-  return join(aolHome(), 'error.log')
+  return join(contextKeepHome(), 'error.log')
 }

@@ -13,7 +13,7 @@ let db: DB
 let repo: Repo
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'aol-gate-'))
+  dir = mkdtempSync(join(tmpdir(), 'contextkeep-gate-'))
   db = openDb(join(dir, 'test.db'))
   repo = new Repo(db)
 })

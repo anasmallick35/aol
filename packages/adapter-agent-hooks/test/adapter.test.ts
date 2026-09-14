@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { AolServer, openDb, type DB, type Interception } from '@aol/core'
-import { AolInterceptor, toInterception, toVerdict, transformPermitted, SPEC_VERSION, type AgentContext } from '../src/index.js'
+import { ContextKeepServer, openDb, type DB, type Interception } from '@contextkeep/core'
+import { ContextKeepInterceptor, toInterception, toVerdict, transformPermitted, SPEC_VERSION, type AgentContext } from '../src/index.js'
 
 const ctx = (point: AgentContext['interception_point'] = 'pre_tool_call', over: Partial<AgentContext> = {}): AgentContext => ({
   spec: SPEC_VERSION,
@@ -84,19 +84,19 @@ describe('verdict collapse — five decisions into the spec’s three', () => {
   })
 })
 
-describe('AolInterceptor against a real daemon', () => {
+describe('ContextKeepInterceptor against a real daemon', () => {
   let dir: string
   let sock: string
   let db: DB
-  let server: AolServer
+  let server: ContextKeepServer
   let seen: Interception[]
 
   beforeEach(async () => {
-    dir = mkdtempSync(join(tmpdir(), 'aol-ah-'))
+    dir = mkdtempSync(join(tmpdir(), 'contextkeep-ah-'))
     sock = join(dir, 'a.sock')
     db = openDb(join(dir, 'test.db'))
     seen = []
-    server = new AolServer({
+    server = new ContextKeepServer({
       socketPath: sock,
       db,
       decide: (e) => {
@@ -115,14 +115,14 @@ describe('AolInterceptor against a real daemon', () => {
   })
 
   it('carries a deny back to the host', async () => {
-    const v = await new AolInterceptor({ socketPath: sock }).intercept(ctx())
+    const v = await new ContextKeepInterceptor({ socketPath: sock }).intercept(ctx())
     expect(v.decision).toBe('deny')
     expect(v.reason).toBe('constraint_violation')
     expect(seen[0]!.adapter).toBe('agent-hooks')
   })
 
   it('allows when the action is fine', async () => {
-    const v = await new AolInterceptor({ socketPath: sock }).intercept(
+    const v = await new ContextKeepInterceptor({ socketPath: sock }).intercept(
       ctx('pre_tool_call', { target: { call_id: 'c2', name: 'Read', args: {} } }),
     )
     expect(v.decision).toBe('allow')
@@ -131,7 +131,7 @@ describe('AolInterceptor against a real daemon', () => {
   it('never throws when the daemon is unreachable', async () => {
     // A host treats an interceptor exception as a fail-closed deny, so an
     // unhandled error of ours would block the user's agent.
-    const v = await new AolInterceptor({ socketPath: join(dir, 'nope.sock'), timeoutMs: 300 }).intercept(ctx())
+    const v = await new ContextKeepInterceptor({ socketPath: join(dir, 'nope.sock'), timeoutMs: 300 }).intercept(ctx())
     expect(v.decision).toBe('deny')
     expect(v.reason).toBe('unreachable')
   })

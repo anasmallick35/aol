@@ -1,14 +1,32 @@
 {
-  "name": "@aol/cli",
-  "version": "0.0.0",
+  "name": "contextkeep",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
-  "bin": { "aol": "./dist/cli.js" },
+  "bin": {
+    "contextkeep": "./dist/cli.js",
+    "ck": "./dist/cli.js"
+  },
   "scripts": {
     "build": "tsup src/cli.ts --format esm --clean --tsconfig tsconfig.build.json"
   },
   "dependencies": {
-    "@aol/core": "*",
+    "@contextkeep/core": "*",
     "commander": "^12.1.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anasmallick35/contextkeep.git"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

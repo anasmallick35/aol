@@ -1,4 +1,4 @@
-# AOL — Decision Debate Log
+# ContextKeep — Decision Debate Log
 
 **Purpose:** the *reasoning trail*. [02-fundamentals-decision-log.md](02-fundamentals-decision-log.md) records what we decided; this records **how we got there** — what was proposed, what was pushed back on, what evidence moved us, and what we rejected and why. Read this when a decision later looks arbitrary, or when someone new asks "why didn't you just…".
 
@@ -223,3 +223,25 @@ Stack that on the four commoditising forces already found — free automatic pro
 - **`agent-memory-doctor`** (PyPI) explicitly **"catches silent convention loss"** — very close to our D1 detector [R28-b].
 
 **What is genuinely left to us:** they frame the problem as **adversarial** (poisoning, injection) or run at **boot time**; ours is **non-adversarial mid-session loss caused by the agent's own optimisations**. And none of them runs a **matched control window**, offers a **statistical guarantee**, or verifies **net savings**. That is the whole moat. It is narrow, and it is the honest statement of our position.
+
+
+---
+
+## Thread 12 — The product got a name
+**Date:** 2026-09-14 · **Decides:** naming, publish timing · **Arose from:** M8 packaging
+
+**Two decisions, both taken at the last cheap moment.**
+
+**1. `AOL` was always an internal codename, and publishing would have made it permanent.** [00](00-project-brief.md) locked it on the explicit note that the external name should describe integrity rather than optimization — and "AOL" carries enormous unrelated brand baggage. `npm i @aol/cli` says 1990s dial-up, not context integrity.
+
+**Landed: `contextkeep`.** Verified free on npm (bare name, plus the `@contextkeep` scope) and on PyPI, so nothing is compromised for availability. Chosen over `anchorline`, `holdline` and `stillknows` on the grounds that developer infrastructure wins on **descriptive** names — LiteLLM, Langfuse and OpenTelemetry all tell you what they are before you open the README. `npm i contextkeep` is already half-understood.
+
+Package identities: `contextkeep` (CLI, with `ck` as a short alias) · `@contextkeep/core` · `@contextkeep/hooks` · `contextkeep-hooks` on PyPI. Home directory moved to `~/.contextkeep`, environment variables to `CONTEXTKEEP_*`. **No back-compat aliases**, because nothing was ever published — a clean break costs nothing here and carrying dead names forever costs something.
+
+**The repo stays `aol`.** It is private, it is ours, and renaming it would churn remotes for no benefit. The public code repo (M8, still unpublished) will carry the product name.
+
+**2. We package but do not publish.** Everything is install-ready and verified by installing from packed tarballs into a clean consumer project and a clean venv — but nothing is pushed to a registry.
+
+**Reasoning, unchanged from [05 §9](05-product-plan.md):** both assumptions are still untested. Evidence of the problem is **one lost constraint across two real compactions, from one user's transcripts**, and there have been **zero conversations with anyone outside this company**. Publishing is where "we built something nobody asked for" becomes public and permanent, and package names cannot be recalled.
+
+**The counter-argument is real and recorded:** publishing is itself the cheapest test of whether the problem is felt, and OSS distribution was always the plan ([05 §6](05-product-plan.md)). We are deferring that test, not rejecting it. The runbook to publish is written and one command away.

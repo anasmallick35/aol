@@ -1,4 +1,4 @@
-# AOL — Stack & Architecture Decisions
+# ContextKeep — Stack & Architecture Decisions
 
 **Status:** DECIDED. Supersedes the stack section of [06-implementation-plan.md](06-implementation-plan.md), which was written around a Claude-Code-only design and was wrong.
 **Evidence:** [01-research-findings.md](01-research-findings.md), Rounds 1–5.
@@ -124,16 +124,16 @@ This is the closest call in the document and the one most worth revisiting.
 
 | Adapter | Package | Role |
 | --- | --- | --- |
-| **Python** | `pip install aol-hooks` | **First-class, day one.** Where the agents are [R27-a], and where competitors are discovered [R28-a][R28-b] |
-| **TypeScript** | `npm i @aol/hooks` | Second ecosystem; OpenAI Agents SDK TS did ~1.5M downloads in 30 days [R27-a] |
-| **Claude Code** | `npx @aol/cli init` | Proving ground — the free deterministic oracle [R15-a] and free ground truth (A4) |
-| **Core daemon** | `npx @aol/cli` / standalone binary | Language-invisible to users (A3) |
+| **Python** | `pip install contextkeep-hooks` | **First-class, day one.** Where the agents are [R27-a], and where competitors are discovered [R28-a][R28-b] |
+| **TypeScript** | `npm i @contextkeep/hooks` | Second ecosystem; OpenAI Agents SDK TS did ~1.5M downloads in 30 days [R27-a] |
+| **Claude Code** | `npx contextkeep init` | Proving ground — the free deterministic oracle [R15-a] and free ground truth (A4) |
+| **Core daemon** | `npx contextkeep` / standalone binary | Language-invisible to users (A3) |
 
 Each shim is deliberately thin: normalise the interception context, call the socket, return the verdict. **All detection logic lives in the core**, so a shim is a few hundred lines and stays cheap to add.
 
 Licence: **MIT**, open-core per [05 §6]. OSS: detectors, adapters, store, report. Commercial later: control plane, conformal guarantee, attestation, multi-tenant policy.
 
-### S4 — Storage: **SQLite (`better-sqlite3`) at `~/.aol/aol.db`**
+### S4 — Storage: **SQLite (`better-sqlite3`) at `~/.contextkeep/contextkeep.db`**
 
 Synchronous API suits a daemon with short critical sections; zero configuration; queryable for the report; a single file the user can inspect or delete — which matters for a product selling integrity.
 

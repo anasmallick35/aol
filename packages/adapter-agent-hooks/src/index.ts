@@ -2,9 +2,9 @@ import {
   PROTOCOL_VERSION,
   decide,
   type Interception,
-  type InterceptionPoint as AolPoint,
-  type Verdict as AolVerdict,
-} from '@aol/core'
+  type InterceptionPoint as CkPoint,
+  type Verdict as CkVerdict,
+} from '@contextkeep/core'
 import {
   transformPermitted,
   type AgentContext,
@@ -16,7 +16,7 @@ import {
 export * from './contract.js'
 
 /** AGENT-HOOKS point → our normalised point. */
-const POINT_MAP: Record<InterceptionPoint, AolPoint> = {
+const POINT_MAP: Record<InterceptionPoint, CkPoint> = {
   agent_startup: 'agent_start',
   input: 'input',
   pre_model_call: 'pre_model',
@@ -75,7 +75,7 @@ export function toInterception(ctx: AgentContext): Interception {
  * (§5.1). Nothing is lost, but the collapse has to be deliberate rather than
  * incidental.
  */
-export function toVerdict(v: AolVerdict, point: InterceptionPoint): Verdict {
+export function toVerdict(v: CkVerdict, point: InterceptionPoint): Verdict {
   switch (v.decision) {
     case 'allow':
       return { decision: 'allow' }
@@ -107,13 +107,13 @@ export function toVerdict(v: AolVerdict, point: InterceptionPoint): Verdict {
         decision: 'transform',
         reason: v.reason ?? null,
         message: v.message ?? null,
-        transform: { path: '/extensions/aol_restore', value: v.transform.restore },
+        transform: { path: '/extensions/contextkeep_restore', value: v.transform.restore },
       }
     }
   }
 }
 
-export interface AolInterceptorOptions {
+export interface ContextKeepInterceptorOptions {
   socketPath?: string
   timeoutMs?: number
 }
@@ -126,8 +126,8 @@ export interface AolInterceptorOptions {
  * points it does define and ask the daemon whether the agent still knows what
  * it needed to know.
  */
-export class AolInterceptor implements Interceptor {
-  constructor(private readonly opts: AolInterceptorOptions = {}) {}
+export class ContextKeepInterceptor implements Interceptor {
+  constructor(private readonly opts: ContextKeepInterceptorOptions = {}) {}
 
   async intercept(context: AgentContext): Promise<Verdict> {
     // Never throw. A host treats an interceptor exception as a fail-closed
@@ -136,11 +136,11 @@ export class AolInterceptor implements Interceptor {
       const verdict = await decide(toInterception(context), this.opts)
       return toVerdict(verdict, context.interception_point)
     } catch {
-      return { decision: 'allow', warnings: [{ reason: 'aol_unavailable', message: 'AOL interceptor error; action not evaluated' }] }
+      return { decision: 'allow', warnings: [{ reason: 'contextkeep_unavailable', message: 'ContextKeep interceptor error; action not evaluated' }] }
     }
   }
 }
 
-export function createInterceptor(opts: AolInterceptorOptions = {}): Interceptor {
-  return new AolInterceptor(opts)
+export function createInterceptor(opts: ContextKeepInterceptorOptions = {}): Interceptor {
+  return new ContextKeepInterceptor(opts)
 }
