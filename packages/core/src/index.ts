@@ -25,5 +25,6 @@ export {
   type MutationWindows,
   type WindowOptions,
 } from './capture/window.js'
+export * from './extract/index.js'
 export { redactString, redactForStorage, REDACTED, MAX_STORED_CHARS } from './redact.js'
 export { logger } from './log.js'
